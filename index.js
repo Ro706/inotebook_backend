@@ -1,18 +1,35 @@
 const express = require('express');
 const connectToMongo = require('./db');
+const cors = require('cors');
+const morgan = require('morgan');
 
-connectToMongo();
+connectToMongo(); // ✅ Ensure MongoDB connection
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 
-// Middleware
-app.use(express.json()); // Correctly use express.json()
+// ✅ Configure CORS
+app.use(cors({
+    origin: '*',  // Allow all origins (for dev), change as needed for production
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'auth-token']
+}));
 
-// Define routes
+// ✅ Middleware
+app.use(express.json()); // Enable JSON parsing
+app.use(morgan('dev')); // ✅ Log requests to console
+
+// ✅ Define Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/notes', require('./routes/notes'));
-// Start the server
+
+// ✅ Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error("Server Error:", err.message);
+    res.status(500).json({ success: false, error: "Internal Server Error" });
+});
+
+// ✅ Start Server
 app.listen(port, () => {
-  console.log(`Backend listening at http://localhost:${port}`);
+    console.log(`Backend listening at http://localhost:${port}`);
 });
